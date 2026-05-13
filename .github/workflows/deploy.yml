@@ -1,0 +1,43 @@
+name: Deploy Cloud Super Will
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate PWA Icons
+        run: |
+          mkdir -p icons
+          # Generate a minimal 192x192 PNG icon (blue square)
+          printf '\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\xc0\x00\x00\x00\xc0\x08\x02\x00\x00\x00\xc6\x8c\x8f\xe6\x00\x00\x00\x01sRGB\x00\xae\xce\x1c\xe9\x00\x00\x00\x19IDATx\x9c\xed\xc1\x01\x01\x00\x00\x00\x82\x20\xff\xaf\x6e\x48\x40\x01\x00\x00\x00\x07\x01\x01\x01\x00\x01\x18\xdc\xa0\xc8\x00\x00\x00\x00IEND\xae\x42\x60\x82' > icons/icon-192.png
+          cp icons/icon-192.png icons/icon-512.png
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

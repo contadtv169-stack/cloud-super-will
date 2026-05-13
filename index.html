@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cloud Super Will</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0d1117">
+  <meta name="description" content="Cloud Super Will - Sua nuvem pessoal 24h">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="login-screen" class="screen">
+    <div class="login-card">
+      <div class="logo">
+        <div class="cloud-icon">☁️</div>
+        <h1>Cloud Super Will</h1>
+        <p class="subtitle">Sua nuvem pessoal 24 horas</p>
+      </div>
+      <form id="login-form">
+        <div class="input-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" value="roberiaaraujo123@gmail.com" required>
+        </div>
+        <div class="input-group">
+          <label for="password">Senha</label>
+          <input type="password" id="password" value="roberia123" required>
+        </div>
+        <button type="submit" class="btn-primary">Entrar</button>
+      </form>
+      <p class="login-error" id="login-error"></p>
+    </div>
+  </div>
+
+  <div id="app-screen" class="screen hidden">
+    <header>
+      <div class="header-left">
+        <span class="cloud-icon-small">☁️</span>
+        <h2>Cloud Super Will</h2>
+      </div>
+      <button id="logout-btn" class="btn-icon" title="Sair">🚪</button>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="upload">📤 Upload</button>
+      <button class="tab" data-tab="files">📁 Arquivos</button>
+      <button class="tab" data-tab="photos">🖼️ Fotos</button>
+      <button class="tab" data-tab="videos">🎬 Videos</button>
+    </nav>
+
+    <main>
+      <section id="tab-upload" class="tab-content active">
+        <div class="upload-zone" id="upload-zone">
+          <div class="upload-icon">📤</div>
+          <p>Arraste arquivos aqui ou clique para selecionar</p>
+          <input type="file" id="file-input" multiple hidden>
+          <button class="btn-secondary" onclick="document.getElementById('file-input').click()">Selecionar Arquivos</button>
+        </div>
+        <div id="upload-progress" class="hidden">
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <p id="progress-text">0%</p>
+        </div>
+      </section>
+
+      <section id="tab-files" class="tab-content">
+        <div class="search-bar">
+          <input type="text" id="search-input" placeholder="Pesquisar arquivos...">
+        </div>
+        <div class="file-grid" id="file-grid"></div>
+      </section>
+
+      <section id="tab-photos" class="tab-content">
+        <div class="photo-grid" id="photo-grid"></div>
+      </section>
+
+      <section id="tab-videos" class="tab-content">
+        <div class="video-grid" id="video-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-content">
+      <span class="modal-close">&times;</span>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

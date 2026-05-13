@@ -1,0 +1,25 @@
+{
+  "name": "Cloud Super Will",
+  "short_name": "Cloud SW",
+  "description": "Sua nuvem pessoal 24 horas - Fotos, videos, documentos",
+  "start_url": "/cloud-super-will/",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "orientation": "portrait",
+  "scope": "/cloud-super-will/",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
