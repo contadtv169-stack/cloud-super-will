@@ -9,85 +9,164 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#0d1117">
-  <meta name="description" content="Cloud Super Will - Sua nuvem pessoal 24h">
+  <meta name="description" content="Cloud Super Will - Sua nuvem pessoal com IA">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="login-screen" class="screen">
-    <div class="login-card">
-      <div class="logo">
-        <div class="cloud-icon">☁️</div>
-        <h1>Cloud Super Will</h1>
-        <p class="subtitle">Sua nuvem pessoal 24 horas</p>
-      </div>
-      <form id="login-form">
-        <div class="input-group">
-          <label for="email">Email</label>
-          <input type="email" id="email" value="roberiaaraujo123@gmail.com" required>
-        </div>
-        <div class="input-group">
-          <label for="password">Senha</label>
-          <input type="password" id="password" value="roberia123" required>
-        </div>
-        <button type="submit" class="btn-primary">Entrar</button>
-      </form>
-      <p class="login-error" id="login-error"></p>
-    </div>
-  </div>
-
-  <div id="app-screen" class="screen hidden">
+  <div id="app" class="app">
     <header>
       <div class="header-left">
         <span class="cloud-icon-small">☁️</span>
         <h2>Cloud Super Will</h2>
       </div>
-      <button id="logout-btn" class="btn-icon" title="Sair">🚪</button>
     </header>
 
-    <nav class="tabs">
-      <button class="tab active" data-tab="upload">📤 Upload</button>
-      <button class="tab" data-tab="files">📁 Arquivos</button>
-      <button class="tab" data-tab="photos">🖼️ Fotos</button>
-      <button class="tab" data-tab="videos">🎬 Videos</button>
-    </nav>
-
-    <main>
-      <section id="tab-upload" class="tab-content active">
+    <main id="main-content">
+      <!-- HOME -->
+      <section id="tab-home" class="tab-content active">
         <div class="upload-zone" id="upload-zone">
-          <div class="upload-icon">📤</div>
+          <div class="upload-icon">☁️</div>
           <p>Arraste arquivos aqui ou clique para selecionar</p>
           <input type="file" id="file-input" multiple hidden>
           <button class="btn-secondary" onclick="document.getElementById('file-input').click()">Selecionar Arquivos</button>
         </div>
         <div id="upload-progress" class="hidden">
-          <div class="progress-bar">
-            <div class="progress-fill" id="progress-fill"></div>
-          </div>
+          <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
           <p id="progress-text">0%</p>
         </div>
-      </section>
-
-      <section id="tab-files" class="tab-content">
         <div class="search-bar">
           <input type="text" id="search-input" placeholder="Pesquisar arquivos...">
         </div>
+        <div class="quick-stats" id="quick-stats"></div>
         <div class="file-grid" id="file-grid"></div>
       </section>
 
-      <section id="tab-photos" class="tab-content">
+      <!-- FOTOS -->
+      <section id="tab-fotos" class="tab-content">
         <div class="photo-grid" id="photo-grid"></div>
       </section>
 
+      <!-- VIDEOS -->
       <section id="tab-videos" class="tab-content">
         <div class="video-grid" id="video-grid"></div>
       </section>
+
+      <!-- PERFIL -->
+      <section id="tab-perfil" class="tab-content">
+        <div class="profile-section">
+          <div class="profile-avatar">☁️</div>
+          <h3>Cloud Super Will</h3>
+          <p class="profile-desc">Sua nuvem pessoal com inteligência artificial</p>
+
+          <div class="profile-card">
+            <h4>🤖 Configuração da IA</h4>
+            <div class="input-group">
+              <label>Provedor da API</label>
+              <select id="ai-provider">
+                <option value="openai">OpenAI (GPT-4 / DALL-E)</option>
+                <option value="gemini">Google Gemini (Grátis)</option>
+                <option value="custom">Custom (OpenAI-compatível)</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Endpoint da API (Custom)</label>
+              <input type="url" id="ai-endpoint" placeholder="https://api.exemplo.com/v1">
+            </div>
+            <div class="input-group">
+              <label>Chave da API (API Key)</label>
+              <div class="input-password">
+                <input type="password" id="ai-key" placeholder="sk-...">
+                <button class="btn-icon-small" id="toggle-key-visibility" onclick="toggleKeyVisibility()">👁️</button>
+              </div>
+            </div>
+            <div class="input-group">
+              <label>Modelo de Chat</label>
+              <input type="text" id="ai-model" placeholder="gpt-4o-mini ou gemini-2.0-flash">
+            </div>
+            <button class="btn-primary" onclick="saveAIConfig()">💾 Salvar Configuração</button>
+            <p id="ai-config-status" class="status-msg"></p>
+          </div>
+
+          <div class="profile-card">
+            <h4>💬 Chat com IA</h4>
+            <div class="chat-container" id="chat-container">
+              <div class="chat-messages" id="chat-messages">
+                <div class="chat-msg ai">Olá! Sou a IA do Cloud Super Will. Como posso ajudar? 🚀</div>
+              </div>
+              <div class="chat-input-area">
+                <button class="btn-icon-small" id="voice-btn" onclick="toggleVoiceInput()">🎤</button>
+                <textarea id="chat-input" rows="1" placeholder="Digite sua mensagem..." oninput="autoResize(this)"></textarea>
+                <button class="btn-icon-small send-btn" onclick="sendChatMessage()">➤</button>
+              </div>
+            </div>
+            <div class="chat-tools">
+              <button class="btn-secondary small" onclick="sendQuickPrompt('Gere uma imagem de: ')">🎨 Gerar Imagem</button>
+              <button class="btn-secondary small" onclick="sendQuickPrompt('Edite esta descrição de imagem: ')">🖼️ Editar Foto</button>
+              <button class="btn-secondary small" onclick="sendQuickPrompt('Crie um vídeo sobre: ')">🎬 Criar Vídeo</button>
+            </div>
+          </div>
+
+          <div class="profile-card">
+            <h4>⚙️ Configurações do App</h4>
+            <div class="setting-row">
+              <span>Tema escuro</span>
+              <label class="toggle"><input type="checkbox" checked disabled><span class="slider"></span></label>
+            </div>
+            <div class="setting-row">
+              <span>Armazenamento usado</span>
+              <span id="storage-info">Calculando...</span>
+            </div>
+            <div class="setting-row">
+              <button class="btn-secondary danger" onclick="clearAllData()">🗑️ Limpar todos os arquivos</button>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
+
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-tab="home">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">Home</span>
+      </button>
+      <button class="nav-item" data-tab="fotos">
+        <span class="nav-icon">🖼️</span>
+        <span class="nav-label">Fotos</span>
+      </button>
+      <button class="nav-item" data-tab="videos">
+        <span class="nav-icon">🎬</span>
+        <span class="nav-label">Vídeos</span>
+      </button>
+      <button class="nav-item" data-tab="perfil">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">Perfil</span>
+      </button>
+    </nav>
   </div>
 
   <div id="modal" class="modal hidden">
     <div class="modal-content">
       <span class="modal-close">&times;</span>
       <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <div id="ai-image-modal" class="modal hidden">
+    <div class="modal-content modal-wide">
+      <span class="modal-close-ai">&times;</span>
+      <div id="ai-image-body">
+        <h3>🎨 Gerar Imagem com IA</h3>
+        <div class="input-group">
+          <label>Descrição da imagem (prompt)</label>
+          <textarea id="ai-image-prompt" rows="3" placeholder="Descreva a imagem que deseja gerar..."></textarea>
+        </div>
+        <button class="btn-primary" onclick="generateImage()">✨ Gerar</button>
+        <div id="ai-image-result" class="ai-image-result hidden">
+          <img id="ai-generated-img" src="" alt="Imagem gerada por IA">
+          <button class="btn-secondary" onclick="downloadGeneratedImage()">⬇️ Baixar</button>
+        </div>
+        <div id="ai-image-loading" class="hidden"><p>⏳ Gerando imagem...</p></div>
+      </div>
     </div>
   </div>
 

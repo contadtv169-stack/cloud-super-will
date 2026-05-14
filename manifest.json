@@ -1,7 +1,7 @@
 {
   "name": "Cloud Super Will",
   "short_name": "Cloud SW",
-  "description": "Sua nuvem pessoal 24 horas - Fotos, videos, documentos",
+  "description": "Sua nuvem pessoal com IA - Fotos, videos, documentos, chat IA",
   "start_url": "/cloud-super-will/",
   "display": "standalone",
   "background_color": "#0d1117",
