@@ -450,6 +450,9 @@ function getEP(){
   if(cfg.provider==='gemini'){
     return {url:'https://generativelanguage.googleapis.com/v1beta/models/'+(cfg.model||'gemini-2.0-flash')+':generateContent?key='+cfg.key,type:'gemini'};
   }
+  if(cfg.provider==='groq'){
+    return {url:'https://api.groq.com/openai/v1/chat/completions',type:'openai-compat',key:cfg.key,model:cfg.model||'llama-3.3-70b-versatile'};
+  }
   const base=cfg.endpoint||'https://api.openai.com/v1';
   return {url:base+'/chat/completions',type:'openai-compat',key:cfg.key,model:cfg.model||'gpt-4o-mini'};
 }
@@ -547,6 +550,7 @@ function endCall(){
 // ===== IMAGE GENERATION =====
 async function generateImage(){
   const p=$('ai-image-prompt').value.trim();if(!p)return alert('Digite uma descrição');
+  if(cfg.provider==='groq'){addMsg('⚠️ Groq não suporta geração de imagens. Use OpenAI ou endpoint custom com DALL-E.','ai');return}
   $('ai-image-loading').classList.remove('hidden');$('ai-image-result').classList.add('hidden');
   try{
     if(!cfg.key){$('ai-image-loading').classList.add('hidden');addMsg('⚠️ Configure a chave da API','ai');return}
@@ -602,6 +606,14 @@ async function initApp(){
 
   // Search
   $('search-input').addEventListener('input',()=>renderHome());
+
+  // Provider change auto-fill
+  $('ai-provider').addEventListener('change',()=>{
+    const v=$('ai-provider').value;
+    if(v==='groq'){$('ai-endpoint').value='https://api.groq.com/openai/v1';$('ai-model').value='llama-3.3-70b-versatile'}
+    else if(v==='openai'){$('ai-endpoint').value='';$('ai-model').value='gpt-4o-mini'}
+    else if(v==='gemini'){$('ai-endpoint').value='';$('ai-model').value='gemini-2.0-flash'}
+  });
 
   // Chat enter
   $('chat-input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChatMsg()}});
