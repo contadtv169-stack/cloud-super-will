@@ -8,17 +8,35 @@
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#0d1117">
+  <meta name="theme-color" id="theme-color" content="#0d1117">
   <meta name="description" content="Cloud Super Will - Sua nuvem pessoal com IA">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="app" class="app">
+  <!-- Face Unlock Screen -->
+  <div id="face-unlock-screen" class="face-unlock-screen hidden">
+    <div class="face-unlock-box">
+      <div class="face-unlock-icon">📷</div>
+      <h2>Desbloqueio Facial</h2>
+      <p id="face-unlock-status">Olhe para a câmera</p>
+      <video id="face-unlock-video" autoplay playsinline muted></video>
+      <canvas id="face-unlock-canvas" hidden></canvas>
+      <div id="face-unlock-loading" class="hidden" style="margin-top:12px;">⏳ Verificando...</div>
+      <div class="face-unlock-actions">
+        <button class="btn-primary" id="face-unlock-btn" onclick="attemptFaceUnlock()">🔓 Desbloquear com Rosto</button>
+        <button class="btn-secondary" onclick="skipFaceUnlock()">🔑 Usar PIN</button>
+      </div>
+      <p id="face-unlock-error" class="status-msg" style="color:var(--error);"></p>
+    </div>
+  </div>
+
+  <div id="app" class="app theme-dark">
     <header>
       <div class="header-left">
         <span class="cloud-icon-small">☁️</span>
         <h2>Cloud Super Will</h2>
       </div>
+      <button id="theme-toggle" class="btn-icon" onclick="toggleTheme()" title="Tema">🌙</button>
     </header>
 
     <main id="main-content">
@@ -41,6 +59,15 @@
         <div class="file-grid" id="file-grid"></div>
       </section>
 
+      <!-- PESSOAS -->
+      <section id="tab-pessoas" class="tab-content">
+        <div class="people-toolbar">
+          <button class="btn-secondary small" onclick="scanFaces()" id="scan-faces-btn">🔍 Detectar rostos</button>
+          <span class="people-count" id="people-count"></span>
+        </div>
+        <div class="people-grid" id="people-grid"></div>
+      </section>
+
       <!-- FOTOS -->
       <section id="tab-fotos" class="tab-content">
         <div class="photo-grid" id="photo-grid"></div>
@@ -54,70 +81,134 @@
       <!-- PERFIL -->
       <section id="tab-perfil" class="tab-content">
         <div class="profile-section">
-          <div class="profile-avatar">☁️</div>
-          <h3>Cloud Super Will</h3>
-          <p class="profile-desc">Sua nuvem pessoal com inteligência artificial</p>
+          <div class="profile-header">
+            <div class="profile-avatar" id="profile-avatar">☁️</div>
+            <div class="profile-info">
+              <h3>Cloud Super Will</h3>
+              <p class="profile-desc">Sua nuvem pessoal com inteligência artificial</p>
+              <div class="profile-stats">
+                <span id="profile-photos">0 fotos</span>
+                <span id="profile-videos">0 vídeos</span>
+                <span id="profile-docs">0 documentos</span>
+              </div>
+            </div>
+          </div>
 
           <div class="profile-card">
             <h4>🤖 Configuração da IA</h4>
             <div class="input-group">
-              <label>Provedor da API</label>
+              <label>Provedor</label>
               <select id="ai-provider">
-                <option value="openai">OpenAI (GPT-4 / DALL-E)</option>
+                <option value="openai">OpenAI (GPT / DALL-E)</option>
+                <option value="groq">Groq (Grátis - Rápido)</option>
                 <option value="gemini">Google Gemini (Grátis)</option>
                 <option value="custom">Custom (OpenAI-compatível)</option>
               </select>
             </div>
             <div class="input-group">
-              <label>Endpoint da API (Custom)</label>
+              <label>Endpoint (Custom)</label>
               <input type="url" id="ai-endpoint" placeholder="https://api.exemplo.com/v1">
             </div>
             <div class="input-group">
-              <label>Chave da API (API Key)</label>
+              <label>Chave da API</label>
               <div class="input-password">
                 <input type="password" id="ai-key" placeholder="sk-...">
-                <button class="btn-icon-small" id="toggle-key-visibility" onclick="toggleKeyVisibility()">👁️</button>
+                <button class="btn-icon-small" onclick="toggleInputVisibility('ai-key')">👁️</button>
               </div>
             </div>
             <div class="input-group">
               <label>Modelo de Chat</label>
-              <input type="text" id="ai-model" placeholder="gpt-4o-mini ou gemini-2.0-flash">
+              <input type="text" id="ai-model" placeholder="gpt-4o-mini / llama-3.3-70b / gemini-2.0-flash">
             </div>
-            <button class="btn-primary" onclick="saveAIConfig()">💾 Salvar Configuração</button>
+            <button class="btn-primary" onclick="saveAIConfig()">💾 Salvar</button>
             <p id="ai-config-status" class="status-msg"></p>
           </div>
 
           <div class="profile-card">
+            <h4>🔊 Voz da IA</h4>
+            <div class="input-group">
+              <label>Provedor de Voz</label>
+              <select id="tts-provider">
+                <option value="system">Voz do Sistema (Grátis)</option>
+                <option value="elevenlabs">ElevenLabs</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Chave ElevenLabs</label>
+              <div class="input-password">
+                <input type="password" id="elevenlabs-key" placeholder="Chave ElevenLabs">
+                <button class="btn-icon-small" onclick="toggleInputVisibility('elevenlabs-key')">👁️</button>
+              </div>
+            </div>
+            <div class="input-group">
+              <label>Voz ID (ElevenLabs)</label>
+              <input type="text" id="elevenlabs-voice" placeholder="21m00Tcm4TlvDq8ikWAM">
+            </div>
+            <button class="btn-primary" onclick="saveVoiceConfig()">💾 Salvar Voz</button>
+            <p id="voice-config-status" class="status-msg"></p>
+          </div>
+
+          <div class="profile-card">
             <h4>💬 Chat com IA</h4>
-            <div class="chat-container" id="chat-container">
+            <div class="chat-container">
               <div class="chat-messages" id="chat-messages">
-                <div class="chat-msg ai">Olá! Sou a IA do Cloud Super Will. Como posso ajudar? 🚀</div>
+                <div class="chat-msg ai">Olá! Sou a IA do Cloud Super Will 🚀</div>
               </div>
               <div class="chat-input-area">
                 <button class="btn-icon-small" id="voice-btn" onclick="toggleVoiceInput()">🎤</button>
-                <textarea id="chat-input" rows="1" placeholder="Digite sua mensagem..." oninput="autoResize(this)"></textarea>
-                <button class="btn-icon-small send-btn" onclick="sendChatMessage()">➤</button>
+                <textarea id="chat-input" rows="1" placeholder="Digite..." oninput="autoResize(this)"></textarea>
+                <button class="btn-icon-small send-btn" onclick="sendChatMsg()">➤</button>
               </div>
             </div>
             <div class="chat-tools">
-              <button class="btn-secondary small" onclick="sendQuickPrompt('Gere uma imagem de: ')">🎨 Gerar Imagem</button>
-              <button class="btn-secondary small" onclick="sendQuickPrompt('Edite esta descrição de imagem: ')">🖼️ Editar Foto</button>
-              <button class="btn-secondary small" onclick="sendQuickPrompt('Crie um vídeo sobre: ')">🎬 Criar Vídeo</button>
+              <button class="btn-secondary small" onclick="startCall()" id="call-ai-btn">📞 Ligar</button>
+              <button class="btn-secondary small" onclick="sendQuick('🎨 Gere uma imagem: ')">🎨 Gerar</button>
+              <button class="btn-secondary small" onclick="sendQuick('✏️ Crie um vídeo sobre: ')">🎬 Criar</button>
             </div>
           </div>
 
           <div class="profile-card">
-            <h4>⚙️ Configurações do App</h4>
+            <h4>🔒 Segurança</h4>
             <div class="setting-row">
-              <span>Tema escuro</span>
-              <label class="toggle"><input type="checkbox" checked disabled><span class="slider"></span></label>
+              <span>Bloqueio facial do app</span>
+              <label class="toggle"><input type="checkbox" id="face-unlock-toggle" onchange="toggleFaceUnlock()"><span class="slider"></span></label>
+            </div>
+            <div id="face-enroll-area" class="hidden" style="margin-top:10px;text-align:center;">
+              <p style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">Cadastre seu rosto para desbloqueio facial</p>
+              <video id="face-enroll-video" autoplay playsinline muted style="width:100%;max-width:280px;border-radius:8px;border:1px solid var(--border);"></video>
+              <canvas id="face-enroll-canvas" hidden></canvas>
+              <div style="display:flex;gap:8px;margin-top:8px;justify-content:center;">
+                <button class="btn-primary" onclick="captureFaceEnroll()" style="width:auto;">📸 Capturar Rosto</button>
+                <button class="btn-secondary" onclick="cancelFaceEnroll()">Cancelar</button>
+              </div>
+              <p id="face-enroll-status" class="status-msg"></p>
             </div>
             <div class="setting-row">
-              <span>Armazenamento usado</span>
+              <span>PIN de segurança</span>
+              <div style="display:flex;gap:4px;align-items:center;">
+                <input type="password" id="security-pin" maxlength="6" placeholder="4-6 dígitos" inputmode="numeric" style="width:120px;padding:6px 8px;background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius);color:var(--text-primary);font-size:13px;">
+                <button class="btn-icon-small" onclick="toggleInputVisibility('security-pin')">👁️</button>
+                <button class="btn-secondary small" onclick="saveSecurityPin()">💾</button>
+              </div>
+            </div>
+            <p id="pin-status" class="status-msg" style="margin-top:4px;"></p>
+          </div>
+
+          <div class="profile-card">
+            <h4>⚙️ Configurações</h4>
+            <div class="setting-row">
+              <span>Tema</span>
+              <select id="theme-select" onchange="setTheme(this.value)">
+                <option value="dark">Escuro</option>
+                <option value="light">Claro</option>
+              </select>
+            </div>
+            <div class="setting-row">
+              <span>Armazenamento</span>
               <span id="storage-info">Calculando...</span>
             </div>
             <div class="setting-row">
-              <button class="btn-secondary danger" onclick="clearAllData()">🗑️ Limpar todos os arquivos</button>
+              <button class="btn-secondary danger" onclick="clearAllData()">🗑️ Limpar tudo</button>
             </div>
           </div>
         </div>
@@ -125,25 +216,40 @@
     </main>
 
     <nav class="bottom-nav">
-      <button class="nav-item active" data-tab="home">
-        <span class="nav-icon">🏠</span>
-        <span class="nav-label">Home</span>
-      </button>
-      <button class="nav-item" data-tab="fotos">
-        <span class="nav-icon">🖼️</span>
-        <span class="nav-label">Fotos</span>
-      </button>
-      <button class="nav-item" data-tab="videos">
-        <span class="nav-icon">🎬</span>
-        <span class="nav-label">Vídeos</span>
-      </button>
-      <button class="nav-item" data-tab="perfil">
-        <span class="nav-icon">👤</span>
-        <span class="nav-label">Perfil</span>
-      </button>
+      <button class="nav-item active" data-tab="home"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></button>
+      <button class="nav-item" data-tab="pessoas"><span class="nav-icon">👥</span><span class="nav-label">Pessoas</span></button>
+      <button class="nav-item" data-tab="fotos"><span class="nav-icon">🖼️</span><span class="nav-label">Fotos</span></button>
+      <button class="nav-item" data-tab="videos"><span class="nav-icon">🎬</span><span class="nav-label">Vídeos</span></button>
+      <button class="nav-item" data-tab="perfil"><span class="nav-icon">👤</span><span class="nav-label">Perfil</span></button>
     </nav>
   </div>
 
+  <!-- Face unlock for files modal -->
+  <div id="face-file-modal" class="modal hidden">
+    <div class="modal-content modal-sm" style="text-align:center;">
+      <h3 style="margin-bottom:12px;">🔒 Arquivo Protegido</h3>
+      <p style="color:var(--text-secondary);margin-bottom:12px;font-size:13px;">Desbloqueie com seu rosto</p>
+      <video id="face-file-video" autoplay playsinline muted style="width:100%;max-width:240px;border-radius:8px;border:1px solid var(--border);margin:0 auto 12px;"></video>
+      <button class="btn-primary" onclick="attemptFileFaceUnlock()">📷 Verificar Rosto</button>
+      <button class="btn-secondary" style="margin-top:8px;width:100%;" onclick="showFilePinModal()">🔑 Usar PIN</button>
+      <p id="face-file-error" class="status-msg" style="color:var(--error);margin-top:6px;"></p>
+    </div>
+  </div>
+
+  <!-- PIN for files modal -->
+  <div id="pin-modal" class="modal hidden">
+    <div class="modal-content modal-sm">
+      <h3 style="text-align:center;margin-bottom:12px;">🔒 PIN do Arquivo</h3>
+      <p style="text-align:center;color:var(--text-secondary);font-size:13px;margin-bottom:12px;">Digite o PIN</p>
+      <div class="input-group">
+        <input type="password" id="pin-input" maxlength="6" placeholder="PIN" inputmode="numeric" style="text-align:center;font-size:22px;letter-spacing:6px;">
+      </div>
+      <button class="btn-primary" onclick="verifyPin()">🔓 Desbloquear</button>
+      <p id="pin-error" class="status-msg" style="color:var(--error);text-align:center;"></p>
+    </div>
+  </div>
+
+  <!-- Preview Modal -->
   <div id="modal" class="modal hidden">
     <div class="modal-content">
       <span class="modal-close">&times;</span>
@@ -151,22 +257,33 @@
     </div>
   </div>
 
+  <!-- Image Gen Modal -->
   <div id="ai-image-modal" class="modal hidden">
     <div class="modal-content modal-wide">
       <span class="modal-close-ai">&times;</span>
       <div id="ai-image-body">
-        <h3>🎨 Gerar Imagem com IA</h3>
+        <h3 style="margin-bottom:12px;">🎨 Gerar Imagem</h3>
         <div class="input-group">
-          <label>Descrição da imagem (prompt)</label>
-          <textarea id="ai-image-prompt" rows="3" placeholder="Descreva a imagem que deseja gerar..."></textarea>
+          <label>Descrição</label>
+          <textarea id="ai-image-prompt" rows="3" placeholder="Descreva a imagem..."></textarea>
         </div>
         <button class="btn-primary" onclick="generateImage()">✨ Gerar</button>
-        <div id="ai-image-result" class="ai-image-result hidden">
-          <img id="ai-generated-img" src="" alt="Imagem gerada por IA">
+        <div id="ai-image-loading" class="hidden" style="text-align:center;padding:20px;">⏳ Gerando...</div>
+        <div id="ai-image-result" class="hidden" style="text-align:center;margin-top:12px;">
+          <img id="ai-generated-img" src="" style="max-width:100%;border-radius:8px;margin-bottom:8px;">
           <button class="btn-secondary" onclick="downloadGeneratedImage()">⬇️ Baixar</button>
         </div>
-        <div id="ai-image-loading" class="hidden"><p>⏳ Gerando imagem...</p></div>
       </div>
+    </div>
+  </div>
+
+  <!-- Call overlay -->
+  <div id="call-overlay" class="hidden" style="position:fixed;inset:0;z-index:500;background:var(--bg-primary);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;">
+    <div style="font-size:72px;">📞</div>
+    <h2>Chamada com IA</h2>
+    <p style="color:var(--text-secondary);text-align:center;max-width:280px;font-size:13px;" id="call-status">Fale algo...</p>
+    <div style="display:flex;gap:12px;">
+      <button class="btn-secondary danger" onclick="endCall()">🔴 Encerrar</button>
     </div>
   </div>
 
